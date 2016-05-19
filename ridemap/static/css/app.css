@@ -1,0 +1,49 @@
+html, body, #map { height: 100%; padding: 0; margin: 0;}
+
+.boxdraw {
+    background: rgba(56,135,190,0.1);
+    border: 2px solid #3887be;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+}
+
+.map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 25%;
+    top: 50px;
+    left: 0;
+    padding: 10px;
+}
+
+.map-overlay .map-overlay-inner {
+    background-color: #fff;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+    border-radius: 3px;
+    margin-bottom: 10px;
+}
+
+.map-overlay input {
+    background-color: transparent;
+    display: inline-block;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    cursor: ew-resize;
+}
+
+#info-table {
+  margin-bottom: 0px;
+}
+
+.pickup-info {
+  max-height: 200px;
+  overflow-y: scroll;
+}
+
+.pickup-info li {
+  cursor: pointer; 
+}
