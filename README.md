@@ -51,3 +51,4 @@ For instance, to add a histogram view of ride times, you would need to:
   * Store the mapbox access token in a better way, maybe retrieving from the server. 
   * We hardcode the months we know we have data for. It would be better to retrieve the available months from location metadata
   * We also hardcode the number of top pickups, it would be better to ask the user how many to display 
+  * Error handling is pretty lacking, and there is no clear way to show the users the errors. This was intentionally focused less on given the time constraints
