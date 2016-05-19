@@ -1,9 +1,7 @@
 
-# Uber ATC Homework Assignment : RideMap
+# RideMap
 
 RideMap is a web application that allows for selecting areas on a map to show ride data. Only trips that are contained within a selected area are provided with relevant data, and only top pickup locations are shown on the map.
-
-http://ec2-54-175-161-50.compute-1.amazonaws.com:8080/ridemap
 
 Some of the design tradeoffs are highlighted or alluded to below given the time limit, resources, and uncertainity around usage.
 
