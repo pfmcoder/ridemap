@@ -10,6 +10,7 @@ I made use of the following projects (with reason):
   * mapbox-gl-js: Looked into other tile maps (Google Maps, Mapbox JS) and found this to be the best feel for interactive experiences
   * pyqtree: The implementation of this was straightforward and allowed me to make edits cleanly
   * jQuery, bootstrap : I am familiar with these libraries
+
 The documentation on the libraries chosen also allowed me to get up to speed quickly and they were fun to learn.
 
 ### Adding View Components
