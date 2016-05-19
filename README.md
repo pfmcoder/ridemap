@@ -33,6 +33,7 @@ For instance, to add a histogram view of ride times, you would need to:
   * There wasn't any time spent on tuning the configuration parameters of the QuadTree, it might be tuned appropriately
   * Look into using Google s2 library (didn't make use of it here because wasn't sure about getting the bindings setup)
   * Clean up the look and feel when no box is selected, now there are just empty fields
+  * Add the heatmap scale to the page and make the heatmap relative to the area selected
 
 #### Scaling 
   Right now the entirety of the application is a single Python process. This has a couple of issues:
