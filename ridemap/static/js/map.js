@@ -290,7 +290,7 @@ var Util = {
 var Map = {
   init: function() {
     //TODO get access token from server instead of hardcoding here 
-    mapboxgl.accessToken = 'pk.eyJ1IjoibWFndWlyZSIsImEiOiJjaW9hb3B0OHkwM3B3dnBranU5ODlneGVtIn0.KCXmJz77zlQ-t1yWYTmn4w';
+    mapboxgl.accessToken =  "Removed From Github";
     window.map = new mapboxgl.Map({
           container: 'map',
             style: 'mapbox://styles/mapbox/streets-v8',
