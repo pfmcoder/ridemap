@@ -9,6 +9,10 @@ class TripStoreProvider(object):
   def get(tripstore_desc):
     if tripstore_desc == 'inmemory':
       in_mem = InMemoryTripStore()
+      in_mem.load(glob.glob('data/test/*.json'))
+      return in_mem
+    elif tripstore_desc == 'inmemory':
+      in_mem = InMemoryTripStore()
       in_mem.load(glob.glob('data/*.json'))
       return in_mem
   # for example if we want to add DynamoDbTripStore()

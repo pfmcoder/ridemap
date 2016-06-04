@@ -4,6 +4,7 @@ import json
 from flask import Flask, request, render_template
 from ridemap import app
 from lib.tripstore import TripStoreProvider
+from lib.cache.lru import LruCache
 
 """
   Views for RideMap application. 
@@ -26,6 +27,7 @@ def parse_request(req):
     raise Exception("lat and lon are required for topleft and bottomright parameters")
   return (int(month), int(year), [float(x) for x in top_left.split(',')], [float(x) for x in bottom_right.split(',')], maximum)
 
+cache = LruCache(100)
 
 #------ routes
 @app.route('/ping')
@@ -42,8 +44,11 @@ def top_pickups():
     month, year, top_left, bottom_right, maximum = parse_request(request)
   except Exception as e:
     return json.dumps({'error': str(e)})
-
-  trips = tripstore.get_top_pickups((month, year), top_left, bottom_right, maximum)
+  cache_val = cache.get((month, year, tuple(top_left), tuple(bottom_right), maximum))
+  if cache_val is not None:
+    trips = cache_val
+  else :
+    trips = tripstore.get_top_pickups((month, year), top_left, bottom_right, maximum)
 
   return json.dumps(trips)
 
@@ -72,3 +77,14 @@ def trips():
   trips = tripstore.get_trips_by_pickup((month, year), top_left, bottom_right)
   trips = { repr(k) : v for k,v in trips.iteritems() } 
   return json.dumps(trips)
+
+@app.route('/cache_top_pickups.json')
+def cache_top_pickups():
+  try:
+    month, year, top_left, bottom_right, maximum = parse_request(request)
+    trips = tripstore.get_top_pickups((month, year), top_left, bottom_right, maximum)
+    cache.put((month, year, tuple(top_left), tuple(bottom_right), maximum), trips)
+    return "true"
+  except Exception as e:
+    return json.dumps({'error': str(e)})
+

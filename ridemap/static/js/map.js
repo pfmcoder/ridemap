@@ -25,8 +25,7 @@ var Draw = {
     // when `mousemove` or `mouseup` occurs.
     var current;
 
-    // Variable for the draw box element.
-    var box;
+    var dragBox;
 
     map.addSource('boxsource', Draw.boxSource);
 
@@ -40,6 +39,13 @@ var Draw = {
             "line-width": 1,
         }
     });
+
+    var clearDragBox = function() {
+      if(dragBox) {
+        dragBox.parentNode.removeChild(dragBox);
+        dragBox = null;
+      }
+    }
 
     // Return the xy coordinates of the mouse position
     var mousePos = function(e) {
@@ -59,11 +65,8 @@ var Draw = {
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
       document.addEventListener('keydown', onKeyDown);
-
-      if(box) {
-        box.parentNode.removeChild(box);
-        box = null;
-      }
+  
+      clearDragBox();
       // Capture the first xy coordinates
       start = mousePos(e);
     }
@@ -73,10 +76,10 @@ var Draw = {
       current = mousePos(e);
 
       // Append the box element if it doesnt exist
-      if (!box) {
-          box = document.createElement('div');
-          box.classList.add('boxdraw');
-          canvas.appendChild(box);
+      if (!dragBox) {
+          dragBox = document.createElement('div');
+          dragBox.classList.add('boxdraw');
+          canvas.appendChild(dragBox);
       }
 
       var minX = Math.min(start.x, current.x),
@@ -86,10 +89,10 @@ var Draw = {
 
       // Adjust width and xy position of the box element ongoing
       var pos = 'translate(' + minX + 'px,' + minY + 'px)';
-      box.style.transform = pos;
-      box.style.WebkitTransform = pos;
-      box.style.width = maxX - minX + 'px';
-      box.style.height = maxY - minY + 'px';
+      dragBox.style.transform = pos;
+      dragBox.style.WebkitTransform = pos;
+      dragBox.style.width = maxX - minX + 'px';
+      dragBox.style.height = maxY - minY + 'px';
     }
 
     var onMouseUp = function(e) {
@@ -105,7 +108,21 @@ var Draw = {
       }
     }
 
-    var boundingBoxToPoly = function(boundingBox) {
+
+    var finish = function(bbox) {
+      // Remove these events now that finish has been called.
+      document.removeEventListener('mousemove', onMouseMove);
+      //document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mouseup', onMouseUp);
+      Draw.drawBox(bbox);
+      clearDragBox();
+      map.dragPan.enable();
+    }
+    // dragging behaviour.
+    canvas.addEventListener('mousedown', mouseDown, true);
+  },
+
+  _boundingBoxToPoly : function(boundingBox) {
       var poly = []
       poly.push([boundingBox[0].lng, boundingBox[0].lat]);
       poly.push([boundingBox[0].lng, boundingBox[1].lat]);
@@ -113,45 +130,28 @@ var Draw = {
       poly.push([boundingBox[1].lng, boundingBox[0].lat]);
       poly.push([boundingBox[0].lng, boundingBox[0].lat]);
       return poly;
-    }
+  },
 
-    var finish = function(bbox) {
-      // Remove these events now that finish has been called.
-      document.removeEventListener('mousemove', onMouseMove);
-      //document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('mouseup', onMouseUp);
-
-      if (bbox) {
-        bb = bbox || []
-        var boxcoords = [map.unproject(bb[0]), map.unproject(bb[1])];
-        var polycoords = boundingBoxToPoly(boxcoords);
-        Draw.boxSource.setData({ 
-          type : "FeatureCollection",
-          features : [
-            { type: "Feature",
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: polycoords
-              }
+  drawBox : function(bbox) {
+    if (bbox) {
+      var boxcoords = [map.unproject(bbox[0]), map.unproject(bbox[1])];
+      var polycoords = Draw._boundingBoxToPoly(boxcoords);
+      Draw.boxSource.setData({ 
+        type : "FeatureCollection",
+        features : [
+          { type: "Feature",
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: polycoords
             }
-          ]
-        });
-        $(document).trigger('boxchanged', [boxcoords]);
-        
-        box.classList = "";
-      } else {
-        if(box) {
-          Draw.boxSource.setData({type : "FeatureCollection", features : [] });
-          box.parentNode.removeChild(box);
-          box = null;
-        } 
-      }
-
-      map.dragPan.enable();
+          }
+        ]
+      });
+      $(document).trigger('boxchanged', [boxcoords]);
+    } else {
+      Draw.boxSource.setData({type : "FeatureCollection", features : [] });
     }
-    // dragging behaviour.
-    canvas.addEventListener('mousedown', mouseDown, true);
   }
 
 }
@@ -214,16 +214,16 @@ var Pickups = {
   _addListeners : function() {
     $(document).on('monthchanged',function(e, month) {
       Pickups.month = month;
-      Pickups.retrievePoints();
+      Pickups.retrievePoints(Pickups.box, Pickups.month, Pickups.year, Pickups.max);
     });
 
     $(document).on('boxchanged',function(e, box) {
       Pickups.box = box;
-      Pickups.retrievePoints();
+      Pickups.retrievePoints(Pickups.box, Pickups.month, Pickups.year, Pickups.max);
     });
     $(document).on('boxcleared',function(e) {
       Pickups.box = undefined;
-      Pickups.retrievePoints();
+      Pickups.retrievePoints(Pickups.box, Pickups.month, Pickups.year, Pickups.max);
     });
   },
  
@@ -248,8 +248,26 @@ var Pickups = {
     return out;
   },
 
-  retrievePoints : function() {
-    var bbox = Pickups.box 
+  cachePoints : function(bbox, month, year, max) {
+    if(!bbox || bbox.length != 2) {
+      return;
+    }
+    
+    $.ajax({
+      method : "POST",
+      url : "/cache_top_pickups.json",
+      dataType : "json",
+      data : { 
+        topleft : Util.makeLatLonStr(bbox[0].lat, bbox[0].lng), 
+        bottomright : Util.makeLatLonStr(bbox[1].lat, bbox[1].lng),
+        year : year,
+        month : month, 
+        max : max
+      }
+    });
+  },
+
+  retrievePoints : function(bbox, month, year, max) {
     if(!bbox || bbox.length != 2) {
       Pickups._topPickupsSource.setData({ type: 'FeatureCollection', features: [] });
       return;
@@ -262,10 +280,15 @@ var Pickups = {
       data : { 
         topleft : Util.makeLatLonStr(bbox[0].lat, bbox[0].lng), 
         bottomright : Util.makeLatLonStr(bbox[1].lat, bbox[1].lng),
-        year : Pickups.year, 
-        month : Pickups.month, 
-        max : Pickups.max
+        year : year,
+        month : month, 
+        max : max
       },
+
+      error : function() { 
+        Pickups._topPickupsSource.setData({ type: 'FeatureCollection', features: [] });
+      },
+
       success : function(response) {
         
         var geoJsonFeatures = response.map(Pickups._topPickupsToGeoJson);
@@ -290,17 +313,17 @@ var Util = {
 var Map = {
   init: function() {
     //TODO get access token from server instead of hardcoding here 
-    mapboxgl.accessToken =  "Removed From Github";
+    mapboxgl.accessToken = 'pk.eyJ1IjoibWFndWlyZSIsImEiOiJjaW9hb3B0OHkwM3B3dnBranU5ODlneGVtIn0.KCXmJz77zlQ-t1yWYTmn4w';
     window.map = new mapboxgl.Map({
-          container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v8',
-            center: [-74.0315, 40.6989], //TODO roughly NYC, this can be obtained from the server in the future
-            maxZoom: 20,
-            minZoom: 8,
-            zoom: 9.68,
-            dragRotate: false,
-            touchZoomRotate: false
-    })
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v8',
+      center: [-74.0315, 40.6989], //TODO roughly NYC, this can be obtained from the server in the future
+      maxZoom: 20,
+      minZoom: 8,
+      zoom: 9.68,
+      dragRotate: false,
+      touchZoomRotate: false
+    });
     
     map.on('load', function() {
       Draw.init();
@@ -308,6 +331,10 @@ var Map = {
       MonthSlider.init();
       PickupsInfoBox.init();
       ToplineInfoBox.init();
+
+      // Start the map out with some points loaded
+      Draw.drawBox([map.project([-74.13693, 40.83199]), map.project([-73.85150, 40.61306])]);
+
     });
   }
 }
