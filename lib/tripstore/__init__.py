@@ -7,7 +7,7 @@ class TripStoreProvider(object):
   """
   @staticmethod
   def get(tripstore_desc):
-    if tripstore_desc == 'inmemory':
+    if tripstore_desc == 'inmemory_test':
       in_mem = InMemoryTripStore()
       in_mem.load(glob.glob('data/test/*.json'))
       return in_mem

@@ -248,25 +248,6 @@ var Pickups = {
     return out;
   },
 
-  cachePoints : function(bbox, month, year, max) {
-    if(!bbox || bbox.length != 2) {
-      return;
-    }
-    
-    $.ajax({
-      method : "POST",
-      url : "/cache_top_pickups.json",
-      dataType : "json",
-      data : { 
-        topleft : Util.makeLatLonStr(bbox[0].lat, bbox[0].lng), 
-        bottomright : Util.makeLatLonStr(bbox[1].lat, bbox[1].lng),
-        year : year,
-        month : month, 
-        max : max
-      }
-    });
-  },
-
   retrievePoints : function(bbox, month, year, max) {
     if(!bbox || bbox.length != 2) {
       Pickups._topPickupsSource.setData({ type: 'FeatureCollection', features: [] });
@@ -303,7 +284,9 @@ var Pickups = {
   Utility methods that can be used by multiple components 
 */
 var Util = {
-  makeLatLonStr : function(a,b) { return a.toString() + "," + b.toString() }
+  makeLatLonStr : function(a,b) { return a.toString() + "," + b.toString(); },
+  readMonth : function() { return parseInt($("#arg-month").val(), 10);},
+  readYear : function() { return parseInt($("#arg-year").val(), 10); }
 }
 
 /* 
@@ -313,14 +296,14 @@ var Util = {
 var Map = {
   init: function() {
     //TODO get access token from server instead of hardcoding here 
-    mapboxgl.accessToken = 'pk.eyJ1IjoibWFndWlyZSIsImEiOiJjaW9hb3B0OHkwM3B3dnBranU5ODlneGVtIn0.KCXmJz77zlQ-t1yWYTmn4w';
+    mapboxgl.accessToken = 'Removed From Github';
     window.map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v8',
-      center: [-74.0315, 40.6989], //TODO roughly NYC, this can be obtained from the server in the future
+      center: JSON.parse($("#arg-map-center").val()).reverse(),
       maxZoom: 20,
       minZoom: 8,
-      zoom: 9.68,
+      zoom: parseFloat($("#arg-map-zoom").val()), 
       dragRotate: false,
       touchZoomRotate: false
     });
@@ -328,12 +311,15 @@ var Map = {
     map.on('load', function() {
       Draw.init();
       Pickups.init();
-      MonthSlider.init();
       PickupsInfoBox.init();
       ToplineInfoBox.init();
-
+      //TODO there is a bug that forces month slider to be the last init  
+      MonthSlider.init();
+      
+      var startTopLeft = JSON.parse($("#arg-top-left").val()).reverse()
+      var startBottomRight = JSON.parse($("#arg-bottom-right").val()).reverse()
       // Start the map out with some points loaded
-      Draw.drawBox([map.project([-74.13693, 40.83199]), map.project([-73.85150, 40.61306])]);
+      Draw.drawBox([map.project(startTopLeft), map.project(startBottomRight)]);
 
     });
   }

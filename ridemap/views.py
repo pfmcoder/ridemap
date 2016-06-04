@@ -13,7 +13,13 @@ from lib.cache.lru import LruCache
 """
 
 #immediately load the tripstore before we start serving requests
-tripstore = TripStoreProvider.get('inmemory')
+tripstore = TripStoreProvider.get('inmemory_test')
+
+def latlon_from_str(latlon_str):
+  if latlon_str is not None and len(latlon_str) > 0:
+    return [float(x) for x in latlon_str.split(',')]
+  else:
+    return None
 
 def parse_request(req):
   month = req.args.get('month')
@@ -25,7 +31,7 @@ def parse_request(req):
     raise Exception("month and year are required parameters")
   if top_left is None or bottom_right is None:
     raise Exception("lat and lon are required for topleft and bottomright parameters")
-  return (int(month), int(year), [float(x) for x in top_left.split(',')], [float(x) for x in bottom_right.split(',')], maximum)
+  return (int(month), int(year), latlon_from_str(top_left), latlon_from_str(bottom_right), maximum)
 
 cache = LruCache(100)
 
@@ -36,7 +42,14 @@ def ping():
 
 @app.route('/ridemap')
 def index():
-  return render_template('index.html')
+  month = request.args.get('month', default="4")
+  year = request.args.get('year', default="2014")
+  top_left = latlon_from_str(request.args.get('boxTopleft', default="40.83199,-74.13693"))
+  bottom_right = latlon_from_str(request.args.get('boxBottomright', default="40.61306,-73.85150"))
+  map_zoom = request.args.get('zoom', default=9.68, type=float)
+  map_center = latlon_from_str(request.args.get('mapCenter', default="40.6989,-74.0315"))
+  return render_template('index.html', month=month, year=year, 
+      top_left=top_left,bottom_right=bottom_right, map_zoom=map_zoom, map_center=map_center)
 
 @app.route('/top_pickups.json')
 def top_pickups():
@@ -78,7 +91,7 @@ def trips():
   trips = { repr(k) : v for k,v in trips.iteritems() } 
   return json.dumps(trips)
 
-@app.route('/cache_top_pickups.json')
+@app.route('/cache_view.json', methods =['POST', 'GET'])
 def cache_top_pickups():
   try:
     month, year, top_left, bottom_right, maximum = parse_request(request)

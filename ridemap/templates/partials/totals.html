@@ -1,6 +1,6 @@
 <div class='map-overlay-inner panel panel-info'>
   <div class="panel-heading">
-    <h3 class="panel-title">Info</h3> 
+    <h3 class="panel-title">Info <a href="#" id="share-link" data-toggle="modal" data-target="#share-link-modal"><span class="pull-right glyphicon glyphicon-share"></span></a></h3> 
   </div>
   <div class="panel-body">
     <table id='info-table' class="table"> 
@@ -19,4 +19,19 @@
     </table>
   </div>
 </div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="share-link-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Share</h4>
+      </div>
+      <div class="modal-body">
+        <p><input type="text" value="" id="share-link-text"></input></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/static/js/topline.js"></script>

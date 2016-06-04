@@ -1,5 +1,9 @@
 html, body, #map { height: 100%; padding: 0; margin: 0;}
 
+body input {
+  width: 100%;
+}
+
 .boxdraw {
     background: rgba(56,135,190,0.1);
     border: 2px solid #3887be;
@@ -26,7 +30,7 @@ html, body, #map { height: 100%; padding: 0; margin: 0;}
     margin-bottom: 10px;
 }
 
-.map-overlay input {
+.map-overlay-inner input {
     background-color: transparent;
     display: inline-block;
     width: 100%;

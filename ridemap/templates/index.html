@@ -34,5 +34,12 @@
       {% include "partials/totals.html" %}
       {% include "partials/toppickups.html" %}
     </div>
+    <!-- args passed through query string, stuff in inputs for safety reasons -->
+    <input type="hidden" value="{{month}}" id="arg-month" />
+    <input type="hidden" value="{{year}}" id="arg-year" />
+    <input type="hidden" value="{{top_left|tojson}}" id="arg-top-left" />
+    <input type="hidden" value="{{bottom_right|tojson}}" id="arg-bottom-right"/>
+    <input type="hidden" value="{{map_zoom}}" id="arg-map-zoom" />
+    <input type="hidden" value="{{map_center|tojson}}" id="arg-map-center" />
   </body>
 </html>
