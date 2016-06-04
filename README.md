@@ -22,6 +22,7 @@ For instance, to add a histogram view of ride times, you would need to:
   * reference the template from the index.html template (and optionally call init() from map.js on map load)
 
 ### Next Features:
+  * Update the URL of the application so that a particular selection can be shared
   * When clicking on a top pickup location and the map zooms, show the dropoff location and the arc connecting them
   * Show a histogram of the most active pickup hours
   * Translate the coordinates into actual places using foursquare or google data
