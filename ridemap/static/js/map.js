@@ -71,6 +71,14 @@ var Draw = {
       start = mousePos(e);
     }
 
+    var findBoundingBox = function(start, current) {
+      var minX = Math.min(start.x, current.x),
+          maxX = Math.max(start.x, current.x),
+          minY = Math.min(start.y, current.y),
+          maxY = Math.max(start.y, current.y);
+      return [ { x: minX, y: minY }, { x: maxX, y: maxY } ];
+    };
+
     var onMouseMove = function(e) {
       // Capture the ongoing xy coordinates
       current = mousePos(e);
@@ -81,23 +89,23 @@ var Draw = {
           dragBox.classList.add('boxdraw');
           canvas.appendChild(dragBox);
       }
-
-      var minX = Math.min(start.x, current.x),
-          maxX = Math.max(start.x, current.x),
-          minY = Math.min(start.y, current.y),
-          maxY = Math.max(start.y, current.y);
-
+      
+      var boundingBox = findBoundingBox(start, current);
+      var minX = boundingBox[0].x,
+          minY = boundingBox[0].y,
+          maxX = boundingBox[1].x,
+          maxY = boundingBox[1].y;
       // Adjust width and xy position of the box element ongoing
       var pos = 'translate(' + minX + 'px,' + minY + 'px)';
       dragBox.style.transform = pos;
       dragBox.style.WebkitTransform = pos;
       dragBox.style.width = maxX - minX + 'px';
       dragBox.style.height = maxY - minY + 'px';
-    }
+    };
 
     var onMouseUp = function(e) {
-      // Capture xy coordinates
-      finish([start, mousePos(e)]);
+      var boundingBox = findBoundingBox(start, mousePos(e));
+      finish([[boundingBox[0].x, boundingBox[0].y], [boundingBox[1].x, boundingBox[1].y]]);
     }
 
     var onKeyDown = function(e) {
@@ -296,7 +304,6 @@ var Util = {
 var Map = {
   init: function() {
     //TODO get access token from server instead of hardcoding here 
-    mapboxgl.accessToken = 'Removed From Github';
     window.map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v8',
